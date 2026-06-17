@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Home IoT Dashboard - Premium Campus Project</title>
+    <!-- Google Fonts & Space Grotesk/Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- CSS Custom stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+
+    <!-- LOADING / BOOTING SCREEN OVERLAY -->
+    <div id="loading-overlay">
+      <div class="spinner-outer">
+        <div class="spinner-inner"></div>
+      </div>
+      <div class="loading-text">Menghubungkan ke IoT Cloud...</div>
+    </div>
+
+    <!-- AUTHENTICATION / LOGIN OVERLAY -->
+    <div id="auth-layout" style="display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 2rem; background-color: #05070a;">
+      <div class="card auth-card" style="width: 100%; max-width: 420px; box-shadow: 0 0 20px rgba(0, 242, 255, 0.15); border: 1px solid rgba(0, 242, 255, 0.3); padding: 2.25rem; background: #0d1117; border-radius: 1rem;">
+        
+        <div class="auth-card-header" style="text-align: center; margin-bottom: 2rem;">
+          <span style="font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3em; color: var(--color-cyan); text-transform: uppercase; margin-bottom: 0.5rem; display: block;">
+            Gateway Auth: System v2.4
+          </span>
+          <h2 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #fff;">
+            NEXUS <span style="color: var(--color-cyan)">SECURITY</span>
+          </h2>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.4rem;">
+            Masukkan kredensial Anda untuk mengakses Kontrol IoT
+          </p>
+        </div>
+
+        <form id="auth-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- Error display message -->
+          <div id="auth-error" style="display: none; color: var(--color-red); font-family: var(--font-mono); font-size: 0.725rem; border: 1px dashed rgba(255, 49, 49, 0.4); background: rgba(255, 49, 49, 0.08); padding: 0.65rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.4;">
+            Error payload here
+          </div>
+
+          <!-- Email Input -->
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <label for="auth-email" style="font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">
+              Alamat Email (Email)
+            </label>
+            <input type="email" id="auth-email" placeholder="nama@email.com" required 
+              style="width: 100%; border: 1px solid var(--border-glow); background: #05070a; color: #fff; border-radius: 8px; padding: 0.75rem; font-size: 0.85rem; outline: none; transition: border-color 0.2s;" />
+          </div>
+
+          <!-- Password Input -->
+          <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            <label for="auth-password" style="font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">
+              Kata Sandi (Password)
+            </label>
+            <input type="password" id="auth-password" placeholder="••••••••" required 
+              style="width: 100%; border: 1px solid var(--border-glow); background: #05070a; color: #fff; border-radius: 8px; padding: 0.75rem; font-size: 0.85rem; outline: none; transition: border-color 0.2s;" />
+          </div>
+
+          <div id="auth-actions" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+            <!-- Login Button -->
+            <button type="submit" id="btn-login" class="btn-ctrl btn-on" style="font-weight: 800; font-size: 0.8rem; background: var(--color-cyan); color: #000; font-family: var(--font-mono); cursor: pointer; border: none; border-radius: 8px; padding: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; width: 100%;">
+              MASUK UTAMA (LOG IN)
+            </button>
+            
+            <!-- Register Toggle Button -->
+            <button type="button" id="btn-register-toggle" style="background: transparent; border: none; color: var(--text-secondary); font-size: 0.75rem; font-family: var(--font-mono); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; padding: 0.25rem 0;">
+              Belum punya akun? Buat Baru (Sign Up)
+            </button>
+          </div>
+        </form>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 1.5rem 0; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">
+          <div style="flex: 1; height: 1px; background: rgba(48, 54, 61, 0.4);"></div>
+          <span>atau / OR</span>
+          <div style="flex: 1; height: 1px; background: rgba(48, 54, 61, 0.4);"></div>
+        </div>
+
+        <!-- Google Login Button -->
+        <button id="btn-google-login" style="width: 100%; background: #1c212c; border: 1px solid var(--border-glow); cursor: pointer; color: #fff; border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s;">
+          <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+          </svg>
+          MASUK DENGAN GOOGLE
+        </button>
+
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div id="dashboard-layout" style="display: none;">
+      <header id="dashboard-header">
+        <div class="brand-section">
+          <!-- SVG Vector representation of Smart Home -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-icon-gif" style="color: var(--color-cyan);">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <h1>SMART HOME<span>IoT</span></h1>
+        </div>
+
+        <div style="display: flex; align-items: flex-end; gap: 2rem;">
+          <!-- Network / Firebase Connection Status -->
+          <div class="network-status" id="firebase-conn">
+            <div class="status-dot" id="conn-dot"></div>
+            <span id="conn-text">DUMMY OFFLINE</span>
+          </div>
+
+          <!-- User Session Info & Logout Button -->
+          <div class="network-status" id="user-session" style="border-left: 1px solid #30363d; padding-left: 1.5rem;">
+            <div class="flex items-center gap-1.5" style="color: var(--color-cyan); font-weight: 700; font-size: 0.75rem;">
+              <span id="user-display-email">admin@campus.edu</span>
+            </div>
+            <button id="btn-logout" class="btn-clear-logs" style="margin-top: 0.2rem; text-align: left; padding: 0;">
+              KELUAR (LOGOUT)
+            </button>
+          </div>
+
+          <!-- Realtime clock widget -->
+          <div class="clock-widget">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span id="clock-val">00:00:00</span>
+            <span id="date-val"></span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+
+      <!-- LEFT SECTION: Monitoring area, Control triggers and audio mic -->
+      <div class="dashboard-left">
+
+        <!-- SENSORS MONITORING ROW -->
+        <section>
+          <div class="section-title">
+            <i data-lucide="activity" style="width: 18px; height: 18px;"></i>
+            Dashboard Monitoring Sensor
+          </div>
+          <div class="sensor-grid">
+            
+            <!-- Temperature Card -->
+            <div class="card sensor-card">
+              <div class="sensor-info">
+                <span class="sensor-label">SUHU DHT11</span>
+                <div class="sensor-value-group">
+                  <span id="temp-val" class="sensor-value text-emerald-400">0.0</span>
+                  <span class="sensor-unit">°C</span>
+                </div>
+              </div>
+              <div class="sensor-visual">
+                <div class="sensor-ring temp-ring"></div>
+                <!-- Thermometer icon -->
+                <i data-lucide="thermometer" class="sensor-icon" style="color: #ff5722; width: 28px; height: 28px;"></i>
+              </div>
+            </div>
+
+            <!-- Humidity Card -->
+            <div class="card sensor-card">
+              <div class="sensor-info">
+                <span class="sensor-label">KELEMBABAN DHT11</span>
+                <div class="sensor-value-group">
+                  <span id="humid-val" class="sensor-value text-blue-400">0</span>
+                  <span class="sensor-unit">%</span>
+                </div>
+              </div>
+              <div class="sensor-visual">
+                <div class="sensor-ring"></div>
+                <!-- Droplet icon -->
+                <i data-lucide="droplets" class="sensor-icon" style="color: var(--color-cyan); width: 28px; height: 28px;"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Dummy Fluctuation Generator for presentation -->
+          <div class="debug-simulator">
+            <div class="simulator-label">
+              <span style="font-size: 0.8rem; font-weight: 700;">Simulasi Perangkat Bergerak (Drift DHT11)</span>
+              <span style="font-size: 0.7rem; color: var(--text-secondary);">Aktifkan untuk mensimulasikan fluktuasi sensor otomatis</span>
+            </div>
+            <button id="btn-simulate" class="btn-simulate">Simulate DHT11</button>
+          </div>
+        </section>
+
+        <!-- RELAYS CONTROLS GRID -->
+        <section>
+          <div class="section-title">
+            <i data-lucide="bolt" style="width: 18px; height: 18px;"></i>
+            Kontrol Saklar Relay / Lampu
+          </div>
+          <div class="relay-grid">
+            
+            <!-- Relay 1 Card -->
+            <div class="card relay-card" id="relay1-card">
+              <div class="relay-header">
+                <div class="relay-title">
+                  <span class="relay-name">Lampu 1</span>
+                  <span class="relay-sub">GPIO 26 - Terhubung</span>
+                </div>
+                <div class="lightbulb-visual">
+                  <i data-lucide="lightbulb" style="width: 24px; height: 24px;"></i>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <!-- Status text indicator -->
+                <div class="relay-status-indicator" id="r1-status">
+                  <div class="indicator-bullet"></div>
+                  <span id="r1-status-text">INACTIVE</span>
+                </div>
+              </div>
+              <div class="relay-controls">
+                <button class="btn-ctrl btn-on" id="r1-on">ON</button>
+                <button class="btn-ctrl btn-off" id="r1-off">OFF</button>
+              </div>
+            </div>
+
+            <!-- Relay 2 Card -->
+            <div class="card relay-card" id="relay2-card">
+              <div class="relay-header">
+                <div class="relay-title">
+                  <span class="relay-name">Lampu 2</span>
+                  <span class="relay-sub">GPIO 25 - Terhubung</span>
+                </div>
+                <div class="lightbulb-visual">
+                  <i data-lucide="lightbulb" style="width: 24px; height: 24px;"></i>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="relay-status-indicator" id="r2-status">
+                  <div class="indicator-bullet"></div>
+                  <span id="r2-status-text">INACTIVE</span>
+                </div>
+              </div>
+              <div class="relay-controls">
+                <button class="btn-ctrl btn-on" id="r2-on">ON</button>
+                <button class="btn-ctrl btn-off" id="r2-off">OFF</button>
+              </div>
+            </div>
+
+            <!-- Relay 3 Card -->
+            <div class="card relay-card" id="relay3-card">
+              <div class="relay-header">
+                <div class="relay-title">
+                  <span class="relay-name">Lampu 3</span>
+                  <span class="relay-sub">GPIO 27 - Terhubung</span>
+                </div>
+                <div class="lightbulb-visual">
+                  <i data-lucide="lightbulb" style="width: 24px; height: 24px;"></i>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="relay-status-indicator" id="r3-status">
+                  <div class="indicator-bullet"></div>
+                  <span id="r3-status-text">INACTIVE</span>
+                </div>
+              </div>
+              <div class="relay-controls">
+                <button class="btn-ctrl btn-on" id="r3-on">ON</button>
+                <button class="btn-ctrl btn-off" id="r3-off">OFF</button>
+              </div>
+            </div>
+
+            <!-- Relay 4 Card -->
+            <div class="card relay-card" id="relay4-card">
+              <div class="relay-header">
+                <div class="relay-title">
+                  <span class="relay-name">Lampu 4</span>
+                  <span class="relay-sub">GPIO 14 - Terhubung</span>
+                </div>
+                <div class="lightbulb-visual">
+                  <i data-lucide="lightbulb" style="width: 24px; height: 24px;"></i>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="relay-status-indicator" id="r4-status">
+                  <div class="indicator-bullet"></div>
+                  <span id="r4-status-text">INACTIVE</span>
+                </div>
+              </div>
+              <div class="relay-controls">
+                <button class="btn-ctrl btn-on" id="r4-on">ON</button>
+                <button class="btn-ctrl btn-off" id="r4-off">OFF</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Master Control Ribbon -->
+          <div class="master-controls" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; width: 100%;">
+              <button class="btn-master btn-master-on" id="btn-master-on" style="flex: 1;">
+                <i data-lucide="power" style="width: 16px; height: 16px;"></i>
+                Semua ON
+              </button>
+              <button class="btn-master btn-master-off" id="btn-master-off" style="flex: 1;">
+                <i data-lucide="power-off" style="width: 16px; height: 16px;"></i>
+                Semua OFF
+              </button>
+            </div>
+            <div style="display: flex; gap: 0.75rem; width: 100%;">
+              <button class="btn-master" id="btn-variation-1" style="flex: 1; background: #161b22; border: 1px solid var(--border-glow); color: var(--color-cyan);">
+                <i data-lucide="sliders" style="width: 14px; height: 14px; color: var(--color-cyan);"></i>
+                Variasi 1 (Alternate)
+              </button>
+              <button class="btn-master" id="btn-variation-2" style="flex: 1; background: #161b22; border: 1px solid var(--border-glow); color: var(--color-purple);">
+                <i data-lucide="sliders" style="width: 14px; height: 14px; color: var(--color-purple);"></i>
+                Variasi 2 (Split)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- VOICE CONTROL ACTIVATOR -->
+        <section class="card voice-section">
+          <div class="section-title" style="margin-bottom: 0.5rem;">
+            <i data-lucide="mic" style="width: 18px; height: 18px;"></i>
+            Integrated Voice Control System
+          </div>
+          
+          <div class="voice-header">
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Kontrol Lampu Pintar dengan Suara Anda</span>
+            <span class="voice-status" id="voice-status-text">KLIK UNTUK SUARA / REKOR</span>
+          </div>
+
+          <!-- Voice Mic Trigger Orb -->
+          <button id="voice-btn" class="voice-trigger-btn" aria-label="Aktifkan Kontrol Suara">
+            <i data-lucide="mic" style="width: 28px; height: 28px;"></i>
+          </button>
+
+          <!-- Auduo Wave graphic indicators -->
+          <div class="wave-container" id="voice-wave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+
+          <!-- Realtime Speech Recognition Transcript Display -->
+          <div class="voice-transcript-box" id="transcript-box">
+            <p id="transcript-text">Hasil analisis rekaman suara akan muncul di sini secara interaktif...</p>
+          </div>
+
+          <!-- List of Voice Guide Cheatsheets -->
+          <div style="margin-top: 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; color:#818cf8; display: block; margin-bottom: 0.4rem;">Panduan Perintah Suara (Speech Commands):</span>
+            <ul class="voice-guide">
+              <li><span>Lampu 1 ON</span> <span class="keyword">"Nyalakan lampu 1"</span></li>
+              <li><span>Lampu 1 OFF</span> <span class="keyword">"Matikan lampu 1"</span></li>
+              <li><span>Lampu 2 ON</span> <span class="keyword">"Nyalakan lampu 2"</span></li>
+              <li><span>Lampu 2 OFF</span> <span class="keyword">"Matikan lampu 2"</span></li>
+              <li><span>Lampu 3/4 ON</span> <span class="keyword">"Nyalakan lampu 3" / "4"</span></li>
+              <li><span>Lampu 3/4 OFF</span> <span class="keyword">"Matikan lampu 3" / "4"</span></li>
+              <li><span>Semua ON</span> <span class="keyword">"Nyalakan semua lampu"</span></li>
+              <li><span>Semua OFF</span> <span class="keyword">"Matikan semua lampu"</span></li>
+              <li><span>Variasi 1</span> <span class="keyword">"Aktifkan variasi 1"</span></li>
+              <li><span>Variasi 2</span> <span class="keyword">"Aktifkan variasi 2"</span></li>
+              <li><span>Cek Suhu</span> <span class="keyword">"Berapa suhu" / "cek suhu"</span></li>
+              <li><span>Cek Kelembaban</span> <span class="keyword">"Berapa kelembaban"</span></li>
+            </ul>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT SECTION: Live logs, Campus Project instructions (ESP32 / Firebase Setup) -->
+      <div class="dashboard-right">
+        
+        <!-- REALTIME LOG LISTS -->
+        <section class="card log-section">
+          <div class="log-header">
+            <div class="section-title" style="margin-bottom: 0; border: none; padding-bottom: 0;">
+              <i data-lucide="terminal" style="width: 18px; height: 18px;"></i>
+              Log Aktivitas Realtime
+            </div>
+            <button id="clear-logs-btn" class="btn-clear-logs">
+              <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
+              HAPUS LOG
+            </button>
+          </div>
+          <div class="log-list" id="log-list">
+            <div class="log-item">
+              <span class="log-time">[00:00:00]</span>
+              <span class="log-tag info">info</span>
+              <span class="log-text">Sistem dimuat. Menunggu sinkronisasi Firebase Cloud Database...</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ACADEMIC / EDU INFO PANEL (TABS) -->
+        <section class="card project-edu-panel">
+          <div class="section-title">
+            <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+            Panduan Project Kampus IoT
+          </div>
+          
+          <div class="edu-tabs">
+            <button class="edu-tab-btn active" id="tab-esp32">ESP32 Code</button>
+            <button class="edu-tab-btn" id="tab-rtdb">DB JSON</button>
+            <button class="edu-tab-btn" id="tab-hosting">Firebase Deploy</button>
+          </div>
+
+          <!-- ESP32 Arduino Code Content -->
+          <div class="edu-tab-content active" id="tab-esp32-content">
+            <p>Salin kode Arduino berikut untuk diunggah ke mikrokontroler <strong>ESP32</strong> Anda menggunakan Arduino IDE:</p>
+            <pre>
+#include &lt;WiFi.h&gt;
+#include &lt;FirebaseESP32.h&gt;
+#include "DHT.h"
+
+#define WIFI_SSID "SSID_WIFI_MU"
+#define WIFI_PASSWORD "PASSWORD_WIFI_MU"
+#define FIREBASE_HOST "https://iot-firebase-6c9d2-default-rtdb.asia-southeast1.firebasedatabase.app"
+#define FIREBASE_AUTH "AIzaSyD9yQhJYAb5hcfgaG9InroxUEVL7DImrLY"
+
+#define RELAY1_PIN 26
+#define RELAY2_PIN 25
+#define RELAY3_PIN 27
+#define RELAY4_PIN 14
+#define DHTPIN 4
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+FirebaseData firebaseData;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(RELAY1_PIN, OUTPUT);
+  pinMode(RELAY2_PIN, OUTPUT);
+  pinMode(RELAY3_PIN, OUTPUT);
+  pinMode(RELAY4_PIN, OUTPUT);
+  
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500); Serial.print(".");
+  }
+  Serial.println("WiFi Terkoneksi!");
+  
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  dht.begin();
+}
+
+void loop() {
+  // Transmit DHT11 Sensor data to Firebase Database
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  if (!isnan(t) && !isnan(h)) {
+    Firebase.setFloat(firebaseData, "/sensor/temperature", t);
+    Firebase.setInt(firebaseData, "/sensor/humidity", h);
+  }
+  
+  // Listen relay controller changes from Firebase Web client
+  if (Firebase.getInt(firebaseData, "/relay/relay1")) {
+    digitalWrite(RELAY1_PIN, firebaseData.intData());
+  }
+  if (Firebase.getInt(firebaseData, "/relay/relay2")) {
+    digitalWrite(RELAY2_PIN, firebaseData.intData());
+  }
+  if (Firebase.getInt(firebaseData, "/relay/relay3")) {
+    digitalWrite(RELAY3_PIN, firebaseData.intData());
+  }
+  if (Firebase.getInt(firebaseData, "/relay/relay4")) {
+    digitalWrite(RELAY4_PIN, firebaseData.intData());
+  }
+  delay(2000);
+}</pre>
+          </div>
+
+          <!-- RTDB Structural Configuration Info Content -->
+          <div class="edu-tab-content" id="tab-rtdb-content">
+            <p>Struktur model JSON yang dipakai di <strong>Firebase Realtime Database</strong> Anda adalah sebagai berikut:</p>
+            <pre>
+{
+  "relay": {
+    "relay1": 0,
+    "relay2": 0,
+    "relay3": 0,
+    "relay4": 0
+  },
+  "sensor": {
+    "temperature": 27.5,
+    "humidity": 64
+  }
+}</pre>
+            <p style="margin-top:0.75rem;">Pastikan juga <strong>Rules (Aturan Keamanan)</strong> di menu Realtime Database Firebase Anda telah disetel publik saat masa pengembangan kampus:</p>
+            <pre>
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</pre>
+          </div>
+
+          <!-- Firebase Hosting Deploy Information Content -->
+          <div class="edu-tab-content" id="tab-hosting-content">
+            <p>Untuk mendeploy project website Anda ke <strong>Firebase Hosting</strong> agar dapat diakses dari luar jaringan secara online:</p>
+            <ul>
+              <li>1. Install Firebase CLI di laptop: <br><code>npm install -g firebase-tools</code></li>
+              <li>2. Login ke akun Google Anda: <br><code>firebase login</code></li>
+              <li>3. Inisialisasi Firebase project di folder: <br><code>firebase init hosting</code></li>
+              <li>4. Pilih project Anda: <strong>iot-firebase-6c9d2</strong></li>
+              <li>5. Tentukan folder public: ketik "dist" atau "." sesuai struktur build Anda</li>
+              <li>6. Deploy website Anda secara instan: <br><code>firebase deploy</code></li>
+            </ul>
+            <p style="margin-top:0.75rem;">Selesai! Anda akan mendapatkan URL Hosting unik <code>https://iot-firebase-6c9d2.web.app</code> dari Firebase.</p>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- FLOATING CONTAINER FOR POPUP WEB NOTIFICATIONS -->
+    <div class="notifications-container" id="notifications-container"></div>
+
+    <!-- MAIN APP FOOTER CAMPUS INFORMATION -->
+    <footer>
+      <div>Dashboard Smart Home Pintar Terpadu - Project Tugas Ujian Kampus</div>
+      <div>Diasuh Oleh: <span class="dev-name">Kelompok IoT Smart City</span></div>
+      <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.4rem;">
+        Sistem terintegrasi secara modular dengan Firebase Realtime Database v10 & Web Speech Recognition API.
+      </div>
+    </footer>
+    </div>
+
+
+    <!-- Lucide icons package script from CDN for rich interface representation -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      // Load and insert SVG replacements in markup where referenced
+      setTimeout(() => {
+        lucide.createIcons();
+      }, 100);
+    </script>
+    
+    <!-- Main Interactive client-side controller script -->
+    <script type="module" src="/script.js"></script>
+  </body>
+</html>
